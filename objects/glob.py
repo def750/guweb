@@ -4,14 +4,14 @@ __all__ = ('db', 'http', 'version', 'cache')
 
 from typing import TYPE_CHECKING
 
-import config  # imported for indirect use
+import settings  # imported for indirect use
 
 if TYPE_CHECKING:
     from aiohttp import ClientSession
-    from cmyui.mysql import AsyncSQLPool
+    import databases
     from cmyui.version import Version
 
-db: 'AsyncSQLPool'
+db: 'databases.Database'
 http: 'ClientSession'
 version: 'Version'
 

@@ -93,7 +93,7 @@ async def settings_profile_post():
         if new_name in glob.config.disallowed_names:
             return await flash('error', "Your new username isn't allowed; pick another.", 'settings/profile')
 
-        if await glob.db.fetch('SELECT 1 FROM users WHERE name = %s', [new_name]):
+        if await glob.db.fetch_one('SELECT 1 FROM users WHERE name = :name', {'name': new_name}):
             return await flash('error', 'Your new username already taken by another user.', 'settings/profile')
 
         safe_name = utils.get_safe_name(new_name)

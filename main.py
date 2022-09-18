@@ -7,8 +7,10 @@ import os
 
 import aiohttp
 import orjson
+import databases
 from quart import Quart
 from quart import render_template
+from quart import jsonify # Idk why i need to import it but prettifier doesn't work without it ¯\_(ツ)_/¯
 
 from cmyui.logging import Ansi
 from cmyui.logging import log
@@ -16,19 +18,22 @@ from cmyui.mysql import AsyncSQLPool
 from cmyui.version import Version
 
 from objects import glob
+import settings
 
 app = Quart(__name__)
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
-version = Version(1, 3, 0)
+version = Version(1, 4, 0)
 
 # used to secure session data.
 # we recommend using a long randomly generated ascii string.
-app.secret_key = glob.config.secret_key
+app.secret_key = str(settings.SECRET_KEY)
 
+
+# On server load
 @app.before_serving
 async def mysql_conn() -> None:
-    glob.db = AsyncSQLPool()
-    await glob.db.connect(glob.config.mysql) # type: ignore
+    glob.db = databases.Database(settings.DB_DSN)
     log('Connected to MySQL!', Ansi.LGREEN)
 
 @app.before_serving
@@ -41,7 +46,8 @@ async def shutdown() -> None:
     await glob.db.close()
     await glob.http.close()
 
-# globals which can be used in template code
+
+# Globals which can be used in template code
 @app.template_global()
 def appVersion() -> str:
     return repr(version)
@@ -58,6 +64,8 @@ def captchaKey() -> str:
 def domain() -> str:
     return glob.config.domain
 
+
+# Register our blueprints
 from blueprints.frontend import frontend
 app.register_blueprint(frontend)
 
